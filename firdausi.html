@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>School Portal — Netlify / QuickEdit</title>
+  <style>
+    body{font-family:Arial;margin:0;padding:16px;background:#eef2f7}
+    .card{background:#fff;padding:14px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.08);margin-bottom:12px}
+    h1,h2{margin:6px 0 12px 0}
+    input,select,textarea,button{width:100%;padding:10px;margin:6px 0;border-radius:6px;border:1px solid #cbd5e1;box-sizing:border-box}
+    button{background:#0b5cff;color:#fff;border:none}
+    .row{display:flex;gap:8px}
+    .col{flex:1}
+    .small{padding:6px;font-size:13px}
+    .hidden{display:none}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:8px;border:1px solid #e6eef8;text-align:left}
+    .muted{color:#666;font-size:13px}
+    .btn-ghost{background:#fff;color:#0b5cff;border:1px solid #cfe0ff}
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>School Portal</h1>
+    <p class="muted">Use QuickEdit to save as <b>index.html</b>. Upload that file to Netlify or open in browser.</p>
+
+    <div id="mainMenu">
+      <button onclick="showSection('studentRegister')">Student Registration (Full Form)</button>
+      <button onclick="showSection('studentLogin')">Student Login</button>
+      <button onclick="showSection('staffLogin')">Staff Login</button>
+      <button onclick="showSection('adminLogin')">Admin Login</button>
+    </div>
+  </div>
+
+  <!-- STUDENT REGISTRATION -->
+  <div id="studentRegister" class="card hidden">
+    <h2>Student Registration (Complete)</h2>
+
+    <input id="r_name" placeholder="Full name">
+    <select id="r_gender"><option>Male</option><option>Female</option></select>
+    <label class="muted">Date of birth</label>
+    <input id="r_dob" type="date">
+    <label class="muted">Class</label>
+    <select id="r_class">
+      <option>Nursery 1</option><option>Nursery 2</option><option>Nursery 3</option>
+      <option>Primary 1</option><option>Primary 2</option><option>Primary 3</option>
+      <option>Primary 4</option><option>Primary 5</option>
+      <option>JSS 1</option><option>JSS 2</option><option>JSS 3</option>
+    </select>
+
+    <input id="r_parent" placeholder="Parent / Guardian name">
+    <input id="r_parentPhone" placeholder="Parent / Guardian phone">
+    <input id="r_origin" placeholder="State of origin">
+    <input id="r_lga" placeholder="LGA">
+    <select id="r_religion"><option>Islam</option><option>Christianity</option><option>Traditional</option></select>
+    <textarea id="r_address" placeholder="Home address" rows="2"></textarea>
+    <input id="r_prev" placeholder="Previous school (optional)">
+    <input id="r_emergency" placeholder="Emergency contact">
+    <input id="r_medical" placeholder="Medical conditions (optional)">
+
+    <label class="muted">Passport photo (optional)</label>
+    <input id="r_photo" type="file" accept="image/*">
+
+    <div class="row">
+      <div class="col"><button onclick="submitRegistration()" class="small">Submit Registration</button></div>
+      <div class="col"><button onclick="home()" class="btn-ghost small">Back</button></div>
+    </div>
+
+    <p id="regNotice" class="muted"></p>
+  </div>
+
+  <!-- STUDENT LOGIN -->
+  <div id="studentLogin" class="card hidden">
+    <h2>Student Login</h2>
+    <input id="loginStuID" placeholder="Student ID (e.g. STU12345)">
+    <input id="loginStuPass" placeholder="Password (if set)">
+    <div class="row">
+      <div class="col"><button onclick="studentLogin()" >Login</button></div>
+      <div class="col"><button onclick="home()" class="btn-ghost">Back</button></div>
+    </div>
+    <p id="stuLoginMsg" class="muted"></p>
+  </div>
+
+  <!-- STUDENT DASHBOARD -->
+  <div id="studentPanel" class="card hidden">
+    <h2>Student Dashboard</h2>
+    <div id="stuProfile"></div>
+    <h3>Report Sheet</h3>
+    <div id="stuReportContainer"></div>
+    <div class="row">
+      <div class="col"><button onclick="studentLogout()">Logout</button></div>
+      <div class="col"><button onclick="home()" class="btn-ghost">Home</button></div>
+    </div>
+  </div>
+
+  <!-- STAFF LOGIN -->
+  <div id="staffLogin" class="card hidden">
+    <h2>Staff Login</h2>
+    <input id="loginStaffID" placeholder="Staff ID (e.g. STF12345)">
+    <input id="loginStaffPass" placeholder="Password (if set)">
+    <div class="row">
+      <div class="col"><button onclick="staffLogin()">Login</button></div>
+      <div class="col"><button onclick="home()" class="btn-ghost">Back</button></div>
+    </div>
+    <p id="staffLoginMsg" class="muted"></p>
+  </div>
+
+  <!-- STAFF DASHBOARD -->
+  <div id="staffPanel" class="card hidden">
+    <h2>Staff Dashboard</h2>
+    <div id="staffGreeting" class="muted"></div>
+
+    <label class="muted">Select class</label>
+    <select id="staff_classSelect"></select>
+
+    <label class="muted">Select subject</label>
+    <select id="staff_subjectSelect"></select>
+
+    <div style="margin-top:8px">
+      <button onclick="loadStudentsForClass()">Load Students</button>
+    </div>
+
+    <div id="classStudentList" style="margin-top:12px"></div>
+
+    <p class="muted">Marks are CA (Continuous Assessment) + Exam. Total = CA + Exam. Positions computed per subject (total).</p>
+
+    <div class="row" style="margin-top:8px">
+      <div class="col"><button onclick="saveClassMarks()">Save All Marks</button></div>
+      <div class="col"><button onclick="staffLogout()" class="btn-ghost">Logout</button></div>
+    </div>
+
+    <p id="staffMsg" class="muted"></p>
+  </div>
+
+  <!-- ADMIN LOGIN -->
+  <div id="adminLogin" class="card hidden">
+    <h2>Admin Login</h2>
+    <input id="adminPass" placeholder="Admin password (default: admin123)">
+    <div class="row">
+      <div class="col"><button onclick="adminLogin()">Login</button></div>
+      <div class="col"><button onclick="home()" class="btn-ghost">Back</button></div>
+    </div>
+    <p id="adminLoginMsg" class="muted"></p>
+  </div>
+
+  <!-- ADMIN DASHBOARD -->
+  <div id="adminPanel" class="card hidden">
+    <h2>Admin Dashboard</h2>
+
+    <h3>Pending Registrations</h3>
+    <div id="pendingContainer"></div>
+
+    <h3>Students (Approved)</h3>
+    <div id="studentList"></div>
+
+    <h3>Manage Subjects</h3>
+    <div class="row">
+      <input id="newSubject" placeholder="New subject name">
+      <button onclick="addSubject()">Add</button>
+    </div>
+    <div id="subjectList" class="muted"></div>
+
+    <h3>Manage Staff</h3>
+    <input id="newStaffName" placeholder="Staff full name">
+    <div class="row">
+      <div class="col"><button onclick="createStaff()">Create staff</button></div>
+      <div class="col"><button onclick="exportCredentials()" class="btn-ghost">Download credentials</button></div>
+    </div>
+    <div id="adminStaffList"></div>
+
+    <h3>Assign Form Master</h3>
+    <div class="row">
+      <select id="formMasterStaff"></select>
+      <select id="formMasterClass">
+        <option>Nursery 1</option><option>Nursery 2</option><option>Nursery 3</option>
+        <option>Primary 1</option><option>Primary 2</option><option>Primary 3</option>
+        <option>Primary 4</option><option>Primary 5</option>
+        <option>JSS 1</option><option>JSS 2</option><option>JSS 3</option>
+      </select>
+    </div>
+    <button onclick="assignFormMaster()">Assign Form Master</button>
+
+    <h3>Admin Controls</h3>
+    <div class="row">
+      <div class="col"><button onclick="resetDemo()" class="btn-ghost">Reset demo data</button></div>
+      <div class="col"><button onclick="adminLogout()">Logout</button></div>
+    </div>
+
+    <p class="muted">Form master can view/edit/approve results for their class.</p>
+  </div>
+
+<script>
+/* ========= STORAGE KEYS & INITIAL DATA ========= */
+const KEY = {
+  STUDENTS: 'sp_students',      // object: id -> student object
+  PENDING: 'sp_pending',        // array of pending student objects
+  STAFF: 'sp_staff',            // object: id -> staff object {name, password?, assignedSubjects:[], classMasterOf?}
+  SUBJECTS: 'sp_subjects',      // array of subject names
+  RESULTS: 'sp_results',        // object: studentId -> { subject: {ca, exam, total, position} }
+  CREDENTIALS: 'sp_creds'       // stored for export if needed
+};
+
+function load(key, fallback){ return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
+function save(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
+
+/* initialize default store if empty */
+if(!localStorage.getItem(KEY.SUBJECTS)) save(KEY.SUBJECTS, ["Mathematics","English","Basic Science","Social Studies"]);
+if(!localStorage.getItem(KEY.STAFF)) save(KEY.STAFF, {});
+if(!localStorage.getItem(KEY.STUDENTS)) save(KEY.STUDENTS, {});
+if(!localStorage.getItem(KEY.PENDING)) save(KEY.PENDING, []);
+if(!localStorage.getItem(KEY.RESULTS)) save(KEY.RESULTS, {});
+if(!localStorage.getItem(KEY.CREDENTIALS)) save(KEY.CREDENTIALS, {});
+
+/* admin password stored separately (not encrypted) for demo */
+if(!localStorage.getItem('sp_admin_pass')) localStorage.setItem('sp_admin_pass','admin123');
+
+/* helper id */
+function makeId(prefix){ return prefix + Math.floor(10000 + Math.random()*89999); }
+
+/* ====== Navigation ====== */
+function showSection(id){
+  document.querySelectorAll('.card').forEach(el=>el.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+function home(){ showSection('mainMenu'); }
+
+/* =========== Student registration =========== */
+async function submitRegistration(){
+  const data = {
+    name: document.getElementById('r_name').value.trim(),
+    gender: document.getElementById('r_gender').value,
+    dob: document.getElementById('r_dob').value,
+    class: document.getElementById('r_class').value,
+    parent: document.getElementById('r_parent').value.trim(),
+    parentPhone: document.getElementById('r_parentPhone').value.trim(),
+    origin: document.getElementById('r_origin').value.trim(),
+    lga: document.getElementById('r_lga').value.trim(),
+    religion: document.getElementById('r_religion').value,
+    address: document.getElementById('r_address').value.trim(),
+    prevSchool: document.getElementById('r_prev').value.trim(),
+    emergency: document.getElementById('r_emergency').value.trim(),
+    medical: document.getElementById('r_medical').value.trim(),
+    passport: null,
+    createdAt: new Date().toISOString()
+  };
+
+  const file = document.getElementById('r_photo').files[0];
+  if(file){
+    const dataURL = await readFileAsDataURL(file);
+    data.passport = dataURL;
+  }
+
+  const pending = load(KEY.PENDING, []);
+  pending.push(data);
+  save(KEY.PENDING, pending);
+  document.getElementById('regNotice').innerText = 'Submitted — wait for admin approval.';
+  setTimeout(()=>home(), 900);
+}
+function readFileAsDataURL(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); }); }
+
+/* =========== Admin area =========== */
+function adminLogin(){
+  const pass = document.getElementById('adminPass').value;
+  if(pass !== localStorage.getItem('sp_admin_pass')) return document.getElementById('adminLoginMsg').innerText = 'Wrong password';
+  loadAdminPanel();
+  showSection('adminPanel');
+}
+function adminLogout(){ document.getElementById('adminPass').value=''; home(); }
+
+function loadAdminPanel(){
+  loadPendingList();
+  loadStudentList();
+  loadSubjectList();
+  loadStaffList();
+  populateFormMasterSelect();
+}
+
+/* Pending registrations */
+function loadPendingList(){
+  const pending = load(KEY.PENDING, []);
+  const container = document.getElementById('pendingContainer');
+  if(!pending.length){ container.innerHTML = '<div class="muted">No pending registrations</div>'; return; }
+  container.innerHTML = pending.map((p, i)=>{
+    return `<div style="padding:8px;border-radius:8px;background:#fbfcff;margin-bottom:8px">
+      <b>${escapeHtml(p.name)}</b> — ${escapeHtml(p.class)}<br>
+      ${escapeHtml(p.gender)} — DOB: ${escapeHtml(p.dob)}<br>
+      Parent: ${escapeHtml(p.parent)} (${escapeHtml(p.parentPhone)})<br>
+      ${p.passport ? `<img src="${p.passport}" width="120" style="border-radius:8px;margin-top:6px"><br>`: ''}
+      <div style="margin-top:8px"><button onclick="approvePending(${i})">Approve</button>
+      <button onclick="rejectPending(${i})" class="btn-ghost small">Reject</button></div>
+    </div>`;
+  }).join('');
+}
+function approvePending(index){
+  const pending = load(KEY.PENDING, []);
+  const students = load(KEY.STUDENTS, {});
+  const record = pending.splice(index,1)[0];
+  const id = makeId('STU');
+  record.id = id;
+  record.approvedAt = new Date().toISOString();
+  students[id] = record;
+  save(KEY.PENDING, pending);
+  save(KEY.STUDENTS, students);
+
+  // store credentials for export
+  const creds = load(KEY.CREDENTIALS, {});
+  creds[id] = { role:'student', id, password: null }; // admin can set password later
+  save(KEY.CREDENTIALS, creds);
+
+  loadPendingList();
+  loadStudentList();
+  alert('Approved — Student ID: ' + id);
+}
+function rejectPending(index){
+  const pending = load(KEY.PENDING, []);
+  pending.splice(index,1);
+  save(KEY.PENDING, pending);
+  loadPendingList();
+}
+
+/* Students list */
+function loadStudentList(){
+  const students = load(KEY.STUDENTS, {});
+  const el = document.getElementById('studentList');
+  const rows = Object.keys(students).map(id=>{
+    const s = students[id];
+    return `<div style="padding:8px;border-radius:8px;background:#fbfcff;margin-bottom:8px">
+      <b>${escapeHtml(s.name)}</b> — ${escapeHtml(s.class)} — <span class="muted">${escapeHtml(id)}</span><br>
+      Parent: ${escapeHtml(s.parent)} — ${escapeHtml(s.parentPhone)}<br>
+      <button onclick="viewStudent('${id}')">View</button>
+      <button onclick="setPasswordPrompt('${id}')">Set Password</button>
+    </div>`;
+  }).join('');
+  el.innerHTML = rows || '<div class="muted">No approved students yet.</div>';
+}
+
+/* view student simple */
+function viewStudent(id){
+  const students = load(KEY.STUDENTS, {});
+  const s = students[id];
+  if(!s) return alert('Not found');
+  alert(`${s.name} — ${s.class}\nParent: ${s.parent}\nPhone: ${s.parentPhone}`);
+}
+
+/* Subjects management */
+function addSubject(){
+  const v = document.getElementById('newSubject').value.trim();
+  if(!v) return;
+  const subjects = load(KEY.SUBJECTS, []);
+  if(subjects.includes(v)) return alert('Subject exists');
+  subjects.push(v);
+  save(KEY.SUBJECTS, subjects);
+  document.getElementById('newSubject').value='';
+  loadSubjectList();
+}
+function loadSubjectList(){
+  const subjects = load(KEY.SUBJECTS, []);
+  document.getElementById('subjectList').innerHTML = subjects.map(s=>`<div style="display:inline-block;padding:6px;margin:6px;border-radius:6px;background:#f1f8ff">${escapeHtml(s)}</div>`).join('') || '<div class="muted">No subjects</div>';
+}
+
+/* Staff management */
+function createStaff(){
+  const name = document.getElementById('newStaffName').value.trim();
+  if(!name) return alert('Provide name');
+  const staff = load(KEY.STAFF, {});
+  const id = makeId('STF');
+  staff[id] = { id, name, assignedSubjects: [], classMasterOf: null, password: null };
+  save(KEY.STAFF, staff);
+
+  const creds = load(KEY.CREDENTIALS, {});
+  creds[id] = { role:'staff', id, password: null };
+  save(KEY.CREDENTIALS, creds);
+
+  document.getElementById('newStaffName').value='';
+  loadStaffList();
+  populateFormMasterSelect();
+  alert('Staff created. ID: ' + id);
+}
+function loadStaffList(){
+  const staff = load(KEY.STAFF, {});
+  document.getElementById('adminStaffList').innerHTML = Object.keys(staff).map(id=>{
+    const s = staff[id];
+    const subjects = (s.assignedSubjects||[]).join(', ') || '—';
+    return `<div style="padding:8px;border-radius:8px;background:#fbfcff;margin-bottom:8px">
+      <b>${escapeHtml(s.name)}</b> — <span class="muted">${escapeHtml(id)}</span><br>
+      Subjects: ${escapeHtml(subjects)}<br>
+      Class Master Of: ${escapeHtml(s.classMasterOf || '—')}<br>
+      Assign subject: <input id="assign-sub-${id}" placeholder="subject name" class="small" style="width:60%;display:inline-block"> <button onclick="assignSubjectToStaff('${id}')">Assign</button>
+      <button onclick="setStaffPasswordPrompt('${id}')">Set Password</button>
+    </div>`;
+  }).join('') || '<div class="muted">No staff yet</div>';
+}
+function assignSubjectToStaff(staffId){
+  const key = 'assign-sub-' + staffId;
+  const sub = document.getElementById(key).value.trim();
+  if(!sub) return alert('Provide subject');
+  const subjects = load(KEY.SUBJECTS, []);
+  if(!subjects.includes(sub)) return alert('Subject not found — add it first in Manage Subjects');
+  const staff = load(KEY.STAFF, {});
+  const s = staff[staffId];
+  s.assignedSubjects = s.assignedSubjects || [];
+  if(!s.assignedSubjects.includes(sub)) s.assignedSubjects.push(sub);
+  save(KEY.STAFF, staff);
+  loadStaffList();
+  populateSubjectSelects();
+}
+
+/* Form master */
+function populateFormMasterSelect(){
+  const staff = load(KEY.STAFF, {});
+  const sel = document.getElementById('formMasterStaff');
+  sel.innerHTML = Object.keys(staff).map(id=>`<option value="${id}">${escapeHtml(staff[id].name)} — ${escapeHtml(id)}</option>`).join('')||'<option value="">No staff</option>';
+}
+function assignFormMaster(){
+  const staffId = document.getElementById('formMasterStaff').value;
+  const cls = document.getElementById('formMasterClass').value;
+  if(!staffId) return alert('Choose staff');
+  const staff = load(KEY.STAFF, {});
+  staff[staffId].classMasterOf = cls;
+  save(KEY.STAFF, staff);
+  loadStaffList();
+  alert('Assigned form master');
+}
+
+/* ======= Password helpers (admin set) ======= */
+function setPasswordPrompt(id){
+  const pw = prompt('Set password for ' + id + ' (leave blank to cancel)');
+  if(!pw) return;
+  // students
+  const students = load(KEY.STUDENTS, {});
+  if(students[id]) { students[id].password = pw; save(KEY.STUDENTS, students); alert('Password set'); return; }
+  alert('Student not found');
+}
+function setStaffPasswordPrompt(id){
+  const pw = prompt('Set password for staff ' + id + ' (leave blank to cancel)');
+  if(!pw) return;
+  const staff = load(KEY.STAFF, {});
+  staff[id].password = pw;
+  save(KEY.STAFF, staff);
+  alert('Password set');
+}
+
+/* ======= Export credentials ======= */
+function exportCredentials(){
+  const creds = load(KEY.CREDENTIALS, {});
+  const url = URL.createObjectURL(new Blob([JSON.stringify(creds, null, 2)], {type:'application/json'}));
+  const a = document.createElement('a'); a.href = url; a.download = 'credentials.json'; a.click(); URL.revokeObjectURL(url);
+}
+
+/* ======= Student login & view ======= */
+function studentLogin(){
+  const id = document.getElementById('loginStuID').value.trim();
+  const pw = document.getElementById('loginStuPass').value;
+  const students = load(KEY.STUDENTS, {});
+  const s = students[id];
+  if(!s) return document.getElementById('stuLoginMsg').innerText = 'Student not found or not approved';
+  if(s.password && s.password !== pw) return document.getElementById('stuLoginMsg').innerText = 'Wrong password';
+  // show profile & report
+  showSection('studentPanel');
+  document.getElementById('stuProfile').innerHTML = `
+    <b>${escapeHtml(s.name)}</b> — ${escapeHtml(s.class)}<br>
+    DOB: ${escapeHtml(s.dob)}<br>
+    Parent: ${escapeHtml(s.parent)} — ${escapeHtml(s.parentPhone)}<br>
+    Address: ${escapeHtml(s.address)}<br>
+    ${s.passport ? `<img src="${s.passport}" width="140" style="border-radius:8px">` : ''}
+  `;
+  renderStudentReport(id);
+  sessionStorage.setItem('sp_current_student', id);
+}
+function studentLogout(){ sessionStorage.removeItem('sp_current_student'); home(); }
+
+/* render student's report (all subjects) */
+function renderStudentReport(stuId){
+  const results = load(KEY.RESULTS, {});
+  const studentResults = results[stuId] || {};
+  let html = '<table><thead><tr><th>Subject</th><th>CA</th><th>Exam</th><th>Total</th><th>Position (subject)</th></tr></thead><tbody>';
+  const subjects = load(KEY.SUBJECTS, []);
+  for(const sub of subjects){
+    const r = studentResults[sub] || {ca:'-',exam:'-',total:'-' , position: '-'};
+    html += `<tr><td>${escapeHtml(sub)}</td><td>${escapeHtml(r.ca)}</td><td>${escapeHtml(r.exam)}</td><td>${escapeHtml(r.total)}</td><td>${escapeHtml(r.position)}</td></tr>`;
+  }
+  html += '</tbody></table>';
+  document.getElementById('stuReportContainer').innerHTML = html;
+}
+
+/* ======= Staff login & marks upload by class ======= */
+function staffLogin(){
+  const id = document.getElementById('loginStaffID').value.trim();
+  const pw = document.getElementById('loginStaffPass').value;
+  const staff = load(KEY.STAFF, {});
+  const s = staff[id];
+  if(!s) return document.getElementById('staffLoginMsg').innerText = 'Staff not found';
+  if(s.password && s.password !== pw) return document.getElementById('staffLoginMsg').innerText = 'Wrong password';
+  sessionStorage.setItem('sp_current_staff', id);
+  document.getElementById('staffGreeting').innerText = `Welcome ${s.name} (${id}) — assigned: ${ (s.assignedSubjects||[]).join(', ') || 'none' }`;
+  populateClassAndSubjectSelectsForStaff(s);
+  showSection('staffPanel');
+}
+function staffLogout(){ sessionStorage.removeItem('sp_current_staff'); home(); }
+
+/* populate class & subject selects */
+function populateClassAndSubjectSelectsForStaff(staffRec){
+  // classes list (fixed as requested)
+  const classSelect = document.getElementById('staff_classSelect');
+  const CLASSES = ["Nursery 1","Nursery 2","Nursery 3","Primary 1","Primary 2","Primary 3","Primary 4","Primary 5","JSS 1","JSS 2","JSS 3"];
+  classSelect.innerHTML = CLASSES.map(c=>`<option>${c}</option>`).join('');
+  // subject list from subjects store OR from staff assigned subjects if any
+  const subjectSelect = document.getElementById('staff_subjectSelect');
+  const subjects = load(KEY.SUBJECTS, []);
+  // if staff has assignedSubjects use those; else allow selecting any subject (admin should assign ideally)
+  let available = staffRec.assignedSubjects && staffRec.assignedSubjects.length ? staffRec.assignedSubjects : subjects;
+  subjectSelect.innerHTML = available.map(s=>`<option>${escapeHtml(s)}</option>`).join('');
+}
+
+/* load students for selected class into UI and present inputs for CA/Exam */
+function loadStudentsForClass(){
+  const cls = document.getElementById('staff_classSelect').value;
+  const subject = document.getElementById('staff_subjectSelect').value;
+  const students = load(KEY.STUDENTS, {});
+  const results = load(KEY.RESULTS, {});
+  const listEl = document.getElementById('classStudentList');
+
+  // list of students in class who are approved
+  const classStudents = Object.keys(students).filter(id => students[id].class === cls);
+  if(!classStudents.length){ listEl.innerHTML = '<div class="muted">No students found in this class</div>'; return; }
+
+  // build table
+  let html = '<table><thead><tr><th>Student</th><th>CA</th><th>Exam</th><th>Total</th></tr></thead><tbody>';
+  for(const id of classStudents){
+    const r = (results[id] && results[id][subject]) || {ca:'',exam:'',total:''};
+    html += `<tr>
+      <td><b>${escapeHtml(students[id].name)}</b><br><span class="muted">${escapeHtml(id)}</span></td>
+      <td><input class="small" data-stu="${id}" data-sub="${escapeHtml(subject)}" data-field="ca" value="${r.ca || ''}" type="number" min="0" max="100"></td>
+      <td><input class="small" data-stu="${id}" data-sub="${escapeHtml(subject)}" data-field="exam" value="${r.exam || ''}" type="number" min="0" max="100"></td>
+      <td class="muted" id="tot-${id}">${r.total || ''}</td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
+  listEl.innerHTML = html;
+
+  // attach input listeners to recalc totals instantly
+  const inputs = listEl.querySelectorAll('input[data-stu]');
+  inputs.forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const sid = inp.getAttribute('data-stu');
+      const sub = inp.getAttribute('data-sub');
+      const caInput = listEl.querySelector(`input[data-stu="${sid}"][data-field="ca"]`);
+      const exInput = listEl.querySelector(`input[data-stu="${sid}"][data-field="exam"]`);
+      const ca = Number(caInput.value) || 0;
+      const ex = Number(exInput.value) || 0;
+      document.getElementById('tot-' + sid).innerText = ca + ex;
+    });
+  });
+}
+
+/* save all CA+Exam values for loaded class/subject, compute totals and positions per subject */
+function saveClassMarks(){
+  const subject = document.getElementById('staff_subjectSelect').value;
+  const listEl = document.getElementById('classStudentList');
+  if(!listEl.innerHTML) return alert('Load students first');
+  const inputs = listEl.querySelectorAll('input[data-stu]');
+  const results = load(KEY.RESULTS, {});
+  // collect totals per student for position calculation
+  const totMap = {}; // stuId -> total for this subject
+  inputs.forEach(inp=>{
+    const sid = inp.getAttribute('data-stu');
+    const field = inp.getAttribute('data-field'); // ca or exam
+    const val = inp.value === '' ? null : Number(inp.value);
+    if(!results[sid]) results[sid] = {};
+    if(!results[sid][subject]) results[sid][subject] = {ca:'', exam:'', total:'', position: '-'};
+    if(field === 'ca') results[sid][subject].ca = (val === null ? '' : val);
+    if(field === 'exam') results[sid][subject].exam = (val === null ? '' : val);
+  });
+  // compute total for each student
+  Object.keys(results).forEach(stu=>{
+    if(results[stu][subject]){
+      const ca = Number(results[stu][subject].ca) || 0;
+      const ex = Number(results[stu][subject].exam) || 0;
+      results[stu][subject].total = ca + ex;
+      // track only for students in current loaded list: find element tot-<sid> to detect presence
+      if(document.getElementById('tot-' + stu)) totMap[stu] = results[stu][subject].total;
+    }
+  });
+  // compute positions for this subject among loaded class students (descending totals)
+  const sorted = Object.entries(totMap).sort((a,b)=>b[1]-a[1]); // [ [stu, total], ... ]
+  // assign positions (ties allowed same position, next position still increments by index+1)
+  sorted.forEach(([stu, tot], idx) => {
+    if(!results[stu][subject]) results[stu][subject] = {};
+    results[stu][subject].position = idx + 1;
+  });
+  save(KEY.RESULTS, results);
+  document.getElementById('staffMsg').innerText = 'Saved marks and updated positions for subject: ' + subject;
+  // update displayed totals
+  for(const sid in totMap){ const el = document.getElementById('tot-' + sid); if(el) el.innerText = totMap[sid]; }
+}
+
+/* ======== Helper functions ======== */
+function escapeHtml(s){ if(s===null||s===undefined) return ''; return String(s).replace(/[&<>"']/g, ch=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[ch]); }
+
+/* simple resets and utilities */
+function resetDemo(){
+  if(!confirm('Reset all stored data (students, pending, staff, subjects, results)?')) return;
+  localStorage.removeItem(KEY.STUDENTS);
+  localStorage.removeItem(KEY.PENDING);
+  localStorage.removeItem(KEY.STAFF);
+  localStorage.removeItem(KEY.SUBJECTS);
+  localStorage.removeItem(KEY.RESULTS);
+  localStorage.removeItem(KEY.CREDENTIALS);
+  // re-init minimal subjects and empty stores
+  save(KEY.SUBJECTS, ["Mathematics","English","Basic Science","Social Studies"]);
+  save(KEY.STAFF, {});
+  save(KEY.STUDENTS, {});
+  save(KEY.PENDING, []);
+  save(KEY.RESULTS, {});
+  save(KEY.CREDENTIALS, {});
+  localStorage.setItem('sp_admin_pass','admin123');
+  alert('Reset complete');
+  home();
+}
+
+/* staff/subject selects used by admin & staff */
+function populateSubjectSelects(){ // refresh any subject dropdowns if present
+  const subjects = load(KEY.SUBJECTS, []);
+  // admin subject list handled by loadSubjectList
+}
+function loadStaffList(){ loadStaffList } // noop to satisfy linter in some editors
+
+/* load staff/subject lists on admin open via loadAdminPanel() called on login */
+
+/* initial view */
+home();
+</script>
+
+</body>
+</html>
